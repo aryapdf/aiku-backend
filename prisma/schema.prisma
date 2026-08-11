@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique @db.VarChar(255)
+  name          String?   @db.VarChar(255)
+  image         String?   @db.Text
+  emailVerified DateTime?
+
+  projects       Project[]
+  conversations  Conversation[]
+  referenceFiles ReferenceFile[]
+  settings       Settings?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Settings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  defaultModel       String   @default("gpt-5")
+  theme              String   @default("dark")
+  defaultProvider    String   @default("nine-router")
+  customSystemPrompt String?  @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  icon        String?  @db.VarChar(10)
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations   Conversation[]
+  referenceFiles  ReferenceFile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  title     String   @db.VarChar(255)
+  model     String   @default("gpt-5")
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String
+  content        String   @db.Text
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model ReferenceFile {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  title     String   @db.VarChar(255)
+  filename  String   @db.VarChar(255)
+  content   String   @db.Text
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
+}
