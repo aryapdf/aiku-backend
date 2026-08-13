@@ -1,7 +1,9 @@
+import { randomUUID } from 'node:crypto'
 import { OAuth2Client } from 'google-auth-library'
 import { env } from '../config/env'
 import { prisma } from '../lib/db'
 import { signJwt } from '../lib/jwt'
+import { projectRepository } from '../repositories'
 
 const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID)
 
@@ -48,6 +50,34 @@ export async function handleGoogleLogin(idToken: string) {
   }
 
   const user = await findOrCreateUser(googlePayload.email, googlePayload.name)
+
+  const token = signJwt({
+    sub: user.id,
+    email: user.email,
+    name: user.name,
+  })
+
+  return { token, user }
+}
+
+export async function handleAnonymousLogin(deviceId?: string) {
+  const identifier = deviceId?.trim() || randomUUID()
+  const email = `anonymous-${identifier}@aiku.local`
+
+  const existing = await prisma.user.findUnique({ where: { email } })
+  let user = existing
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: { email, name: 'Anonymous' },
+    })
+
+    // Auto-create default project so conversations can start immediately
+    await projectRepository.create(user.id, {
+      name: 'Personal',
+      icon: '📚',
+    })
+  }
 
   const token = signJwt({
     sub: user.id,

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { handleGoogleLogin } from '../services/authService'
+import { handleGoogleLogin, handleAnonymousLogin } from '../services/authService'
 import { success, errorResponse } from '../lib/utils'
 
 const authRoutes = new Hono()
@@ -21,6 +21,23 @@ authRoutes.post('/login', async (c) => {
     )
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Login failed'
+    return c.json(errorResponse('UNAUTHORIZED', message), 401)
+  }
+})
+
+authRoutes.post('/anonymous', async (c) => {
+  try {
+    const body = await c.req.json<{ deviceId?: string }>()
+    const { token, user } = await handleAnonymousLogin(body.deviceId)
+
+    return c.json(
+      success({
+        token,
+        user: { id: user.id, email: user.email, name: user.name },
+      }),
+    )
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Anonymous login failed'
     return c.json(errorResponse('UNAUTHORIZED', message), 401)
   }
 })
