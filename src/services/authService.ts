@@ -1,9 +1,8 @@
 import { OAuth2Client } from 'google-auth-library'
-import { PrismaClient } from '@prisma/client'
 import { env } from '../config/env'
+import { prisma } from '../lib/db'
 import { signJwt } from '../lib/jwt'
 
-const prisma = new PrismaClient()
 const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID)
 
 export interface GooglePayload {

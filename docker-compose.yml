@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: aiku-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aiku
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aiku
+    ports:
+      - "5440:5432"
+    volumes:
+      - aiku_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiku -d aiku"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  aiku_pgdata:

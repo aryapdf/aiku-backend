@@ -1,8 +1,9 @@
 import { config } from 'dotenv'
 import { resolve } from 'path'
 
-const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.local'
-config({ path: resolve(import.meta.dirname, '../../', envFile) })
+// Load `.env` first, then `.env.local` as an override (local is gitignored).
+config({ path: resolve(import.meta.dirname, '../../', '.env') })
+config({ path: resolve(import.meta.dirname, '../../', '.env.local'), override: true })
 
 export const env = {
   PORT: parseInt(process.env.PORT || '3003', 10),
