@@ -5,7 +5,7 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.local'
 config({ path: resolve(import.meta.dirname, '../../', envFile) })
 
 export const env = {
-  PORT: parseInt(process.env.PORT || '3000', 10),
+  PORT: parseInt(process.env.PORT || '3003', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
   DATABASE_URL: process.env.DATABASE_URL!,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,

@@ -1,0 +1,395 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AIKU API",
+    "version": "0.1.0",
+    "description": "Backend API for AIKU Personal AI Workspace"
+  },
+  "servers": [{ "url": "http://localhost:3003/api" }],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "icon": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateProjectInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "description": { "type": "string", "maxLength": 500 },
+          "icon": { "type": "string", "maxLength": 10 }
+        }
+      },
+      "Conversation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "projectId": { "type": "string" },
+          "title": { "type": "string" },
+          "model": { "type": "string" },
+          "messageCount": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateConversationInput": {
+        "type": "object",
+        "required": ["projectId"],
+        "properties": {
+          "projectId": { "type": "string" },
+          "title": { "type": "string" },
+          "model": { "type": "string", "enum": ["gpt-5", "claude-opus", "gemini"] }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "conversationId": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "assistant"] },
+          "content": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SendMessageInput": {
+        "type": "object",
+        "required": ["conversationId", "content"],
+        "properties": {
+          "conversationId": { "type": "string" },
+          "content": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "model": { "type": "string", "enum": ["gpt-5", "claude-opus", "gemini"] }
+        }
+      },
+      "ReferenceFile": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "projectId": { "type": "string" },
+          "title": { "type": "string" },
+          "filename": { "type": "string" },
+          "content": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "data": {},
+          "meta": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "string" },
+              "total": { "type": "integer" },
+              "page": { "type": "integer" },
+              "pageSize": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "details": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "OAuth login",
+        "security": [],
+        "responses": {
+          "200": { "description": "Login initiated" }
+        }
+      }
+    },
+    "/auth/session": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get current session",
+        "responses": {
+          "200": {
+            "description": "Session data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout",
+        "responses": { "200": { "description": "Logged out" } }
+      }
+    },
+    "/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List projects",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "pageSize", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }],
+                  "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Project" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Create project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateProjectInput" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created" },
+          "409": { "description": "Duplicate name" }
+        }
+      }
+    },
+    "/projects/{id}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Get project",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Project detail" },
+          "404": { "description": "Not found" }
+        }
+      },
+      "patch": {
+        "tags": ["Projects"],
+        "summary": "Update project",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateProjectInput" } }
+          }
+        },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Projects"],
+        "summary": "Delete project",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "204": { "description": "Deleted" } }
+      }
+    },
+    "/conversations": {
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "List conversations",
+        "parameters": [
+          { "name": "projectId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conversation list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }],
+                  "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Conversation" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Conversations"],
+        "summary": "Create conversation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateConversationInput" } }
+          }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/conversations/{id}": {
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "Get conversation",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Conversation detail" } }
+      },
+      "patch": {
+        "tags": ["Conversations"],
+        "summary": "Update conversation",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Conversations"],
+        "summary": "Delete conversation",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "204": { "description": "Deleted" } }
+      }
+    },
+    "/messages": {
+      "get": {
+        "tags": ["Messages"],
+        "summary": "List messages",
+        "parameters": [
+          { "name": "conversationId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }],
+                  "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Message" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Messages"],
+        "summary": "Send message (SSE stream)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SendMessageInput" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SSE stream",
+            "content": { "text/event-stream": { "schema": { "type": "string" } } }
+          }
+        }
+      }
+    },
+    "/reference": {
+      "get": {
+        "tags": ["Reference"],
+        "summary": "List reference files",
+        "parameters": [
+          { "name": "projectId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference file list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }],
+                  "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/ReferenceFile" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Reference"],
+        "summary": "Upload reference file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["projectId", "title", "filename", "content"],
+                "properties": {
+                  "projectId": { "type": "string" },
+                  "title": { "type": "string" },
+                  "filename": { "type": "string" },
+                  "content": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/reference/{id}": {
+      "get": {
+        "tags": ["Reference"],
+        "summary": "Get reference file",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "File detail" } }
+      },
+      "patch": {
+        "tags": ["Reference"],
+        "summary": "Update reference file",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Reference"],
+        "summary": "Delete reference file",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "204": { "description": "Deleted" } }
+      }
+    },
+    "/models": {
+      "get": {
+        "tags": ["Models"],
+        "summary": "Available AI models",
+        "responses": {
+          "200": {
+            "description": "Model list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }],
+                  "properties": { "data": { "type": "array", "items": { "type": "string" } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

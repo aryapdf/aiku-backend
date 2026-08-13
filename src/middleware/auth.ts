@@ -1,16 +1,16 @@
 import type { Context, Next } from 'hono'
 import { env } from '../config/env'
 import { errorResponse } from '../lib/utils'
+import { verifyJwt } from '../lib/jwt'
 
 const TOKEN_PREFIX = 'Bearer '
 
-// Dev mode: skip auth if WHITELIST_EMAILS is empty
-const DEV_USER = { id: 'dev-user', email: 'dev@aiku.local' }
-
 export async function authMiddleware(c: Context, next: Next) {
+  // Dev mode: skip auth if WHITELIST_EMAILS is empty
   if (env.NODE_ENV === 'development' && env.WHITELIST_EMAILS.length === 0) {
-    c.set('userId', DEV_USER.id)
-    c.set('email', DEV_USER.email)
+    c.set('userId', 'dev-user')
+    c.set('email', 'dev@aiku.local')
+    c.set('name', 'Dev User')
     return next()
   }
 
@@ -21,11 +21,12 @@ export async function authMiddleware(c: Context, next: Next) {
 
   const token = header.slice(TOKEN_PREFIX.length)
   try {
-    // JWT verify would go here in production
-    c.set('userId', 'user-from-token')
-    c.set('email', 'user@email.com')
+    const payload = verifyJwt(token)
+    c.set('userId', payload.sub)
+    c.set('email', payload.email)
+    c.set('name', payload.name ?? '')
   } catch {
-    return c.json(errorResponse('UNAUTHORIZED', 'Invalid token'), 401)
+    return c.json(errorResponse('UNAUTHORIZED', 'Invalid or expired token'), 401)
   }
 
   return next()
