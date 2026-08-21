@@ -18,12 +18,50 @@ model User {
   conversations  Conversation[]
   referenceFiles ReferenceFile[]
   settings       Settings?
+  aiModels       AIModel[]
+  agents         Agent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
   @@index([email])
+}
+
+model AIModel {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String   @db.VarChar(255)
+  provider  String   @default("nine-router")
+  model     String   @db.VarChar(255)
+  baseUrl   String?  @db.Text
+  apiKey    String?  @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_models")
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Agent {
+  id           String  @id @default(cuid())
+  userId       String
+  name         String  @db.VarChar(255)
+  description  String? @db.Text
+  systemPrompt String  @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("agents")
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 model Settings {
@@ -70,6 +108,7 @@ model Conversation {
   userId    String
   title     String   @db.VarChar(255)
   model     String   @default("gpt-5")
+  agentId   String?
 
   project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -18,6 +18,7 @@ export const conversationService = {
       userId: input.userId,
       title: input.title || 'New Chat',
       model: input.model,
+      agentId: input.agentId,
     })
   },
 

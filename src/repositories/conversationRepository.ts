@@ -17,11 +17,11 @@ export const conversationRepository = {
     })
   },
 
-  async create(data: { projectId: string; userId: string; title: string; model?: string }) {
+  async create(data: { projectId: string; userId: string; title: string; model?: string; agentId?: string }) {
     return prisma.conversation.create({ data })
   },
 
-  async update(id: string, data: { title?: string; model?: string }) {
+  async update(id: string, data: { title?: string; model?: string; agentId?: string }) {
     return prisma.conversation.update({ where: { id }, data })
   },
 

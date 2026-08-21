@@ -13,7 +13,8 @@ export const env = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
   AUTH_SECRET: process.env.AUTH_SECRET || 'dev-secret-change-me',
   WHITELIST_EMAILS: (process.env.WHITELIST_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean),
-  NINE_ROUTER_API_KEY: process.env.NINE_ROUTER_API_KEY!,
+  NINE_ROUTER_API_KEY: process.env.NINE_ROUTER_API_KEY,
   NINE_ROUTER_BASE_URL: process.env.NINE_ROUTER_BASE_URL || 'https://api.nineai.com',
+  NINE_ROUTER_MODEL: process.env.NINE_ROUTER_MODEL || 'gpt-5',
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 } as const

@@ -12,6 +12,7 @@ export interface ConversationDTO {
   projectId: string
   title: string
   model: string
+  agentId?: string | null
   messageCount?: number
   lastMessageAt?: Date | null
   createdAt: Date
