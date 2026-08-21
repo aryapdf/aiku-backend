@@ -1,4 +1,4 @@
-import { messageRepository, conversationRepository, modelRepository, agentRepository } from '../repositories'
+import { messageRepository, conversationRepository, modelRepository, agentRepository, settingsRepository } from '../repositories'
 import { getAIProvider } from './providers'
 import type { ChatMessage } from './providers/types'
 import type { SendMessageInput } from '../types'
@@ -55,11 +55,13 @@ export const chatService = {
       return { provider: m.provider, model: m.model, baseUrl: m.baseUrl, apiKey: m.apiKey }
     }
 
+    // Fallback: user's Nine Router settings (workspace-level credentials).
+    const settings = await settingsRepository.findByUserId(userId)
     return {
       provider: 'nine-router',
-      model: env.NINE_ROUTER_MODEL,
-      baseUrl: env.NINE_ROUTER_BASE_URL,
-      apiKey: env.NINE_ROUTER_API_KEY,
+      model: settings.defaultModel || env.NINE_ROUTER_MODEL,
+      baseUrl: settings.nineRouterBaseUrl || env.NINE_ROUTER_BASE_URL,
+      apiKey: settings.nineRouterApiKey || env.NINE_ROUTER_API_KEY,
     }
   },
 

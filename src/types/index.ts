@@ -9,7 +9,7 @@ export interface ProjectDTO {
 
 export interface ConversationDTO {
   id: string
-  projectId: string
+  projectId: string | null
   title: string
   model: string
   agentId?: string | null
@@ -33,6 +33,19 @@ export interface ReferenceFileDTO {
   title: string
   filename: string
   content?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface SettingsDTO {
+  id: string
+  userId: string
+  defaultModel: string
+  theme: string
+  defaultProvider: string
+  customSystemPrompt: string | null
+  nineRouterBaseUrl: string | null
+  nineRouterApiKey: string | null
   createdAt: Date
   updatedAt: Date
 }

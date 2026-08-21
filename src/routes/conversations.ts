@@ -6,9 +6,9 @@ import { success } from '../lib/utils'
 const conversationRoutes = new Hono()
 
 conversationRoutes.get('/', async (c) => {
+  const userId = c.get('userId')
   const projectId = c.req.query('projectId')
-  if (!projectId) return c.json({ error: { code: 'VALIDATION_ERROR', message: 'projectId required' } }, 400)
-  const conversations = await conversationService.list(projectId)
+  const conversations = await conversationService.list(userId, projectId)
   return c.json(success(conversations, { total: conversations.length }))
 })
 

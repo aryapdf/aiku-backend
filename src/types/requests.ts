@@ -56,7 +56,7 @@ export const updateProjectSchema = z.object({
 })
 
 export const createConversationSchema = z.object({
-  projectId: z.string().min(1),
+  projectId: z.string().min(1).nullish(),
   title: z.string().min(1).max(255).optional(),
   model: modelSchema,
   agentId: agentSchema,
@@ -87,6 +87,15 @@ export const updateReferenceSchema = z.object({
   content: z.string().min(1).optional(),
 })
 
+export const updateSettingsSchema = z.object({
+  defaultModel: z.string().min(1).max(255).optional(),
+  theme: z.string().min(1).max(50).optional(),
+  defaultProvider: z.string().min(1).max(50).optional(),
+  customSystemPrompt: z.string().max(2000).nullish(),
+  nineRouterBaseUrl: z.string().max(2000).nullish(),
+  nineRouterApiKey: z.string().max(2000).nullish(),
+})
+
 export type CreateProjectInput = z.infer<typeof createProjectSchema>
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
 export type CreateConversationInput = z.infer<typeof createConversationSchema>
@@ -99,3 +108,4 @@ export type UpdateModelInput = z.infer<typeof updateModelSchema>
 export type TestModelInput = z.infer<typeof testModelSchema>
 export type CreateAgentInput = z.infer<typeof createAgentSchema>
 export type UpdateAgentInput = z.infer<typeof updateAgentSchema>
+export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>

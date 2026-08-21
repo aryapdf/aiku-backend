@@ -11,6 +11,7 @@ import conversationRoutes from './routes/conversations'
 import messageRoutes from './routes/messages'
 import referenceRoutes from './routes/reference'
 import modelRoutes from './routes/models'
+import settingsRoutes from './routes/settings'
 import openapiSpec from './openapi.json' with { type: 'json' }
 
 const app = new Hono()
@@ -56,6 +57,7 @@ api.route('/conversations', conversationRoutes)
 api.route('/messages', messageRoutes)
 api.route('/reference', referenceRoutes)
 api.route('/models', modelRoutes)
+api.route('/settings', settingsRoutes)
 
 app.route('/api', api)
 

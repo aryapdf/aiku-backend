@@ -10,6 +10,14 @@ export const conversationRepository = {
     })
   },
 
+  async findByUserId(userId: string): Promise<ConversationDTO[]> {
+    return prisma.conversation.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      include: { _count: { select: { messages: true } } },
+    })
+  },
+
   async findById(id: string) {
     return prisma.conversation.findUnique({
       where: { id },
@@ -17,7 +25,7 @@ export const conversationRepository = {
     })
   },
 
-  async create(data: { projectId: string; userId: string; title: string; model?: string; agentId?: string }) {
+  async create(data: { projectId?: string | null; userId: string; title: string; model?: string; agentId?: string }) {
     return prisma.conversation.create({ data })
   },
 

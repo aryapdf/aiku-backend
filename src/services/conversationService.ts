@@ -2,8 +2,9 @@ import { conversationRepository } from '../repositories'
 import type { CreateConversationInput, UpdateConversationInput } from '../types'
 
 export const conversationService = {
-  async list(projectId: string) {
-    return conversationRepository.findByProjectId(projectId)
+  async list(userId: string, projectId?: string) {
+    if (projectId) return conversationRepository.findByProjectId(projectId)
+    return conversationRepository.findByUserId(userId)
   },
 
   async getById(id: string) {
@@ -14,7 +15,7 @@ export const conversationService = {
 
   async create(input: CreateConversationInput & { userId: string }) {
     return conversationRepository.create({
-      projectId: input.projectId,
+      projectId: input.projectId ?? null,
       userId: input.userId,
       title: input.title || 'New Chat',
       model: input.model,

@@ -73,6 +73,8 @@ model Settings {
   theme              String   @default("dark")
   defaultProvider    String   @default("nine-router")
   customSystemPrompt String?  @db.Text
+  nineRouterBaseUrl  String?  @db.Text
+  nineRouterApiKey   String?  @db.Text
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -106,13 +108,13 @@ model Project {
 
 model Conversation {
   id        String   @id @default(cuid())
-  projectId String
+  projectId String?
   userId    String
   title     String   @db.VarChar(255)
   model     String   @default("gpt-5")
   agentId   String?
 
-  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project  Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages Message[]
 
